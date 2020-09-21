@@ -14,7 +14,7 @@ class DecisionTreeClassifier:
 
     # max depth determines how many layers the tree will have.
     # when instantiating, it needs at least one layer to run
-    def __init__(self, max_depth=None):
+    def __init__(self, max_depth=1):
         self.max_depth = max_depth
 
 #######################################################################################   
@@ -27,14 +27,24 @@ class DecisionTreeClassifier:
 
 #######################################################################################
     def _grow_tree(self, X, y, depth=0):
-        num_samples_per_class = [np.sum(y == i) for i in range(self.n_classes)] # what does this return?
-        predicted_class = np.argmax(num_samples_per_class) # what does this return?
+        # Get a list of 0's that will be used to count how many 
+        # ocurrences we have of each class
+        num_samples_per_class = [np.sum(y == i) for i in range(self.n_classes)]
+
+        # get the index that holds the maximum value in the list num_sample_per_class
+        predicted_class = np.argmax(num_samples_per_class)
+
+        # make a node that has the index of the predicted class as its predicted class
         node = Node(predicted_class=predicted_class)
+
         # this bit of code creates the layers/branches of the tree
         # in a recursive fashion
         if depth < self.max_depth:
+            # find the index and threshold where we should split the tree
+            # using _best_split
             idx, thr = self._best_split(X,y)
             ### go to the best_split function
+
             if idx is not None:
                 indices_left = X[:, idx] < thr
                 X_left, y_left = X[indices_left], y[indices_left]
@@ -42,16 +52,24 @@ class DecisionTreeClassifier:
                 node.feature_index = idx
                 node.left = self._grow_tree(X_left, y_left, depth + 1)
                 node.right = self._grow_tree(X_right, y_right, depth + 1)
+
+        # if depth == the max depth, we return the final node in the sequence
         return node
 
 #######################################################################################
     def _best_split(self, X, y):
+        # get the size/length of y
         m = y.size
+        # if our data is only one observation
         if m <= 1:
+            # we can't make a prediction
             return None, None
             ### return to _grow_tree
 
-        num_parent = [np.sum(y == c) for c in range(self.n_classes)] # what does this return?
+        # Get a list of 0's that will be used to count how many ocurrences we have of each class
+        num_parent = [np.sum(y == c) for c in range(self.n_classes)] 
+
+        
         best_gini = 1.0 - sum((n / m)**2 for n in num_parent) # what does this return?
         best_idx, best_thr = None, None
 
