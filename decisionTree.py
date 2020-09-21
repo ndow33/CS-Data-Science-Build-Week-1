@@ -30,15 +30,19 @@ class DecisionTreeClassifier:
         num_samples_per_class = [np.sum(y == i) for i in range(self.n_classes)] # what does this return?
         predicted_class = np.argmax(num_samples_per_class) # what does this return?
         node = Node(predicted_class=predicted_class)
-
+        # this bit of code creates the layers/branches of the tree
+        # in a recursive fashion
         if depth < self.max_depth:
             idx, thr = self._best_split(X,y)
             ### go to the best_split function
             if idx is not None:
-                indeces_left = X[:, idx] < thr
+                indices_left = X[:, idx] < thr
                 X_left, y_left = X[indices_left], y[indices_left]
-                X_right, y_right = X[~indices_left], y[~indices_left]
-
+                X_right, y_right = X[~indices_left], y[~indices_left] # what does the ~ do?
+                node.feature_index = idx
+                node.left = self._grow_tree(X_left, y_left, depth + 1)
+                node.right = self._grow_tree(X_right, y_right, depth + 1)
+        return node
 
 #######################################################################################
     def _best_split(self, X, y):
@@ -75,7 +79,29 @@ class DecisionTreeClassifier:
         return best_idx, best_thr
         ### return to _grow_tree
 #######################################################################################
-    def predict(self, features, target):
+    def predict(self, X):
         # returns a list of predictions
         return [self._predict(inputs) for inputs in X]
 
+#######################################################################################
+    def _predict(self, inputs):
+        node = self.tree
+        while node.left:
+            if inputs[node.feature_index] < node.threshold:
+                node = node.left
+            else:
+                node = node.right
+        return node.predicted_class
+
+#######################################################################################
+
+
+if __name__ == "__main__":
+    import sys
+    from sklearn.datasets import load_iris
+
+    dataset = load_iris()
+    X, y = dataset.data, dataset.target  # pylint: disable=no-member
+    clf = DecisionTreeClassifier(max_depth=40)
+    clf.fit(X, y)
+    print(clf.predict([[0, 0, 5, 1.5]]))
