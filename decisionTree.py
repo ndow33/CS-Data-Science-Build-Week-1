@@ -14,27 +14,34 @@ class DecisionTreeClassifier:
 
     # max depth determines how many layers the tree will have.
     # when instantiating, it needs at least one layer to run
-    def __init__(self, max_depth=1):
+    def __init__(self, max_depth=0):
         self.max_depth = max_depth
+        self.tree = None
+        self.loop = 1
 
 #######################################################################################   
     def fit(self, X, y):
         # n_classes = the total possible number of outcomes
         self.n_classes = len(set(y)) # creates a set of the unique possible outcomes
         self.n_features = X.shape[1] # the number of features in the given data
-        self.tree = self._grow_tree(X, y) # creates a decision tree from the data
+        self.tree = self._grow_tree(X, y) # creates a decision tree from X and y
         ### go to the _create_tree function...
 
 #######################################################################################
     def _grow_tree(self, X, y, depth=0):
-        # Get a list of 0's that will be used to count how many 
-        # ocurrences we have of each class
+        # print loop number
+        print('')
+        print(f'LOOP: {self.loop}')
+        self.loop += 1
+        # Get a list of how many samples we have per class
         num_samples_per_class = [np.sum(y == i) for i in range(self.n_classes)]
+        print(f'NUM_SAMPLES_PER_CLASS: {num_samples_per_class}') 
 
-        # get the index that holds the maximum value in the list num_sample_per_class
-        predicted_class = np.argmax(num_samples_per_class)
+        # get the index of the lsit that holds the maximum value in the list num_sample_per_class
+        # returns an integer
+        predicted_class = np.argmax(num_samples_per_class) 
 
-        # make a node that has the index of the predicted class as its predicted class
+        # instantiate a node that has the index of the predicted class as its predicted class
         node = Node(predicted_class=predicted_class)
 
         # this bit of code creates the layers/branches of the tree
@@ -43,10 +50,15 @@ class DecisionTreeClassifier:
             # find the index and threshold where we should split the tree
             # using _best_split
             idx, thr = self._best_split(X,y)
+            print(f'IDX: {idx}')
+            print(f'THR: {thr}')
             ### go to the best_split function
 
             if idx is not None:
+                # creates a new list of values from the current feature
+                # that are less than the threshold
                 indices_left = X[:, idx] < thr
+                print(f'IND_LEFT {indices_left}')
                 X_left, y_left = X[indices_left], y[indices_left]
                 X_right, y_right = X[~indices_left], y[~indices_left] # what does the ~ do?
                 node.feature_index = idx
@@ -59,32 +71,43 @@ class DecisionTreeClassifier:
 #######################################################################################
     def _best_split(self, X, y):
         # get the size/length of y
-        m = y.size
+        y_size = y.size
+        print(f'Y_SIZE: {y_size}')
         # if our data is only one observation
-        if m <= 1:
+        if y_size <= 1:
             # we can't make a prediction
             return None, None
             ### return to _grow_tree
 
-        # Get a list of 0's that will be used to count how many ocurrences we have of each class
+        # Otherwise, get a list of 0's that will be used to count how many ocurrences we have of each class
         num_parent = [np.sum(y == c) for c in range(self.n_classes)] 
 
+        # as we iterate through the different combinations below,
+        # it will return the best gini
+        best_gini = 1.0 - sum((n / y_size)**2 for n in num_parent)
+        print(f'BEST_GINI: {best_gini}')
         
-        best_gini = 1.0 - sum((n / m)**2 for n in num_parent) # what does this return?
         best_idx, best_thr = None, None
-
+        
+        # now we loop through features
+        # by their index
         for idx in range(self.n_features):
-            thresholds, classes = zip(*sorted(zip(X[:, idx], y))) # what does this return? it returns two lists: thresholds and classes
+            # create an array of the potential thresholds
+            thresholds = X[:, idx]
+            # create an array of the potential classes
+            classes = y 
+
             num_left = [0] * self.n_classes
+            # a list of 0's that will be used to count how many ocurrences we have of each class
             num_right = num_parent.copy()
 
-            for i in range(1, m):
+            for i in range(1, y_size):
                 c = classes[i - 1] # this uses the list classes from above to return a single class, or answer (a class is the y or target value)
                 num_left[c] += 1
                 num_right[c] -= 1
                 gini_left = 1.0 - sum((num_left[x] / i) ** 2 for x in range(self.n_classes)) # returns the gini impurity for the left fork using comprehension
-                gini_right = 1.0 - sum((num_right[x] / (m - i))**2 for x in range(self.n_classes)) # returns the gini impurity for the right fork using comprehension
-                gini = (i * gini_left + (m - i) * gini_right) / m
+                gini_right = 1.0 - sum((num_right[x] / (y_size - i))**2 for x in range(self.n_classes)) # returns the gini impurity for the right fork using comprehension
+                gini = (i * gini_left + (y_size - i) * gini_right) / y_size # this finds the gini impurity
 
                 if thresholds[i] == thresholds[i - 1]:
                     continue
@@ -119,7 +142,7 @@ if __name__ == "__main__":
     from sklearn.datasets import load_iris
 
     dataset = load_iris()
-    X, y = dataset.data, dataset.target  # pylint: disable=no-member
-    clf = DecisionTreeClassifier(max_depth=40)
+    X, y = dataset.data, dataset.target
+    clf = DecisionTreeClassifier(max_depth=5)
     clf.fit(X, y)
     print(clf.predict([[0, 0, 5, 1.5]]))
