@@ -2,9 +2,18 @@ from sklearn.datasets import load_iris
 from decision_tree import DecisionTreeClassifier
 from sklearn import tree
 
+# load the iris dataset
 dataset = load_iris()
+
+# set X and y variables
 X, y = dataset.data, dataset.target
+print(':::::::::::::::::::::::::::::::::::::::::::::')
+print(f'APPROPRIATE X, y DATATYPES: {type(X)}')
+print(':::::::::::::::::::::::::::::::::::::::::::::')
+# create a new isntance of the DecisionTreeClassifier object
 clf = DecisionTreeClassifier(max_depth=5)
+
+# call the fit method on that object 
 clf.fit(X, y)
 print('')
 print(':::::::::::::PREDICTIONS:::::::::::::::::::::')
