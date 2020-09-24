@@ -19,3 +19,5 @@ clf2.fit(X, y)
 
 print(f'SCIKITLEARN MODEL PREDICTION: {clf2.predict(inputs)}')
 print(':::::::::::::::::::::::::::::::::::::::::::::')
+
+print(clf)

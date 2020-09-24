@@ -25,8 +25,13 @@ class DecisionTreeClassifier:
     def __init__(self, max_depth=0):
         self.max_depth = max_depth
         self.tree = None
+        # this attribute is simply there to help us visualize
+        # how many times the below methods are looping through
+        # as well as what is happening in each iteration
         self.loop = 1
 
+    def __str__(self):
+        return f'{self.tree}'
 #######################################__FIT__################################################
    
     def fit(self, X, y):
@@ -164,17 +169,16 @@ class DecisionTreeClassifier:
         return node.predicted_class
 
 
-#######################################################################################
-
-
 if __name__ == "__main__":
-    import sys
     from sklearn.datasets import load_iris
-
     dataset = load_iris()
     X, y = dataset.data, dataset.target
     clf = DecisionTreeClassifier(max_depth=5)
     clf.fit(X, y)
+    print('')
+    print(':::::::::::::PREDICTIONS:::::::::::::::::::::')
+    print('')
     print(':::::::::::::::::::::::::::::::::::::::::::::')
-    print(f'INPUTS: {[[0, 0, 5, 1.5]]}')
-    print(f'PREDICTION: {clf.predict([[0, 0, 5, 1.5]])}')
+    inputs = [[1, 1.5, 5, 1.5]]
+    print(f'INPUTS: {inputs}')
+    print(f'OUR MODEL PREDICTION: {clf.predict(inputs)}')
