@@ -1,5 +1,5 @@
 from sklearn.datasets import load_iris
-from decisionTree import DecisionTreeClassifier
+from decision_tree import DecisionTreeClassifier
 from sklearn import tree
 
 dataset = load_iris()
@@ -19,5 +19,3 @@ clf2.fit(X, y)
 
 print(f'SCIKITLEARN MODEL PREDICTION: {clf2.predict(inputs)}')
 print(':::::::::::::::::::::::::::::::::::::::::::::')
-
-print(clf)
